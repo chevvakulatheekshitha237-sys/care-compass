@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, X, AlertTriangle, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { Send, Mic, MicOff, X, AlertTriangle, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -59,6 +61,29 @@ const SymptomChat = ({ isOpen, onClose }: SymptomChatProps) => {
   const [urgencyResult, setUrgencyResult] = useState<UrgencyResult | null>(null);
   const [conversationStage, setConversationStage] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    isListening,
+    isSupported,
+    startListening,
+    stopListening,
+    error: speechError,
+  } = useSpeechRecognition({
+    onResult: (transcript) => {
+      setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -305,17 +330,41 @@ const SymptomChat = ({ isOpen, onClose }: SymptomChatProps) => {
           {/* Input */}
           <div className="p-4 border-t border-border/50">
             <div className="flex items-center gap-2">
-              <button className="p-3 hover:bg-muted rounded-full transition-colors">
-                <Mic className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Describe your symptoms..."
-                className="flex-1 bg-muted rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
-              />
+              {isSupported && (
+                <button
+                  onClick={toggleVoiceInput}
+                  className={`p-3 rounded-full transition-all ${
+                    isListening
+                      ? "bg-destructive text-destructive-foreground animate-pulse"
+                      : "hover:bg-muted text-muted-foreground"
+                  }`}
+                  title={isListening ? "Stop recording" : "Start voice input"}
+                >
+                  {isListening ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </button>
+              )}
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={isListening ? "Listening..." : "Describe your symptoms..."}
+                  className={`w-full bg-muted rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground ${
+                    isListening ? "ring-2 ring-destructive/50" : ""
+                  }`}
+                />
+                {isListening && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                    <span className="text-xs text-muted-foreground">Recording</span>
+                  </span>
+                )}
+              </div>
               <Button
                 variant="default"
                 size="icon"
