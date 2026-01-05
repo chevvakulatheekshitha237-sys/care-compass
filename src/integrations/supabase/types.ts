@@ -14,7 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      symptom_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptom_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "symptom_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      symptom_sessions: {
+        Row: {
+          conditions: string[] | null
+          created_at: string
+          id: string
+          recommendation: string | null
+          specialist: string | null
+          urgency_level: string | null
+          user_id: string
+        }
+        Insert: {
+          conditions?: string[] | null
+          created_at?: string
+          id?: string
+          recommendation?: string | null
+          specialist?: string | null
+          urgency_level?: string | null
+          user_id: string
+        }
+        Update: {
+          conditions?: string[] | null
+          created_at?: string
+          id?: string
+          recommendation?: string | null
+          specialist?: string | null
+          urgency_level?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
